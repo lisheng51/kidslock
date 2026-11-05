@@ -23,6 +23,10 @@
     <string name="btn_unlock">解锁</string>
     <string name="btn_set_pin">设置家长PIN</string>
 
+    <!-- Guard accessibility service (Google TV) -->
+    <string name="guard_a11y_label">儿童锁屏 · 锁屏守护</string>
+    <string name="guard_a11y_description">仅在锁屏答题期间生效：拦截 HOME、设置、语音助手等按键，并在孩子切到其他应用时把答题界面拉回来。不读取屏幕内容，不收集任何数据。解锁后不做任何操作。</string>
+
     <!-- Notification -->
     <string name="notif_title">儿童锁屏运行中</string>
     <string name="notif_remaining">剩余观看时间</string>

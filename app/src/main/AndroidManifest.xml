@@ -78,6 +78,20 @@
             </intent-filter>
         </receiver>
 
+        <!-- 锁屏守护（无障碍服务）：Google TV 上拦截 HOME 键、防切出应用 -->
+        <service
+            android:name=".GuardAccessibilityService"
+            android:exported="true"
+            android:label="@string/guard_a11y_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/guard_accessibility" />
+        </service>
+
         <!-- Timer Service -->
         <service
             android:name=".LockService"
