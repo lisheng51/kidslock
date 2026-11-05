@@ -1,11 +1,24 @@
 {
   "meta": {
-    "name": "内置题库（默认离线）",
-    "note": "架构支持全部年级，内容按单元持续扩充；亦可经 NAS 接口覆盖。答案/解析均人工核对。",
-    "grade_subject_map": {
-      "primary": ["语文", "数学", "英语"],
-      "junior": ["语文", "数学", "英语", "物理", "历史", "道德与法治"]
-    }
+      "name": "内置题库（默认离线）",
+      "note": "架构支持全部年级，内容按单元持续扩充；亦可经 NAS 接口覆盖。答案/解析均人工核对。 荷兰语题目按荷兰小学 groep 7 水平编写。",
+      "grade_subject_map": {
+          "primary": [
+              "语文",
+              "数学",
+              "英语",
+              "荷兰语"
+          ],
+          "junior": [
+              "语文",
+              "数学",
+              "英语",
+              "荷兰语",
+              "物理",
+              "历史",
+              "道德与法治"
+          ]
+      }
   },
   "questions": [
     {"id": "math_g5_u1_q1", "subject": "数学", "grade": 5, "edition": "人教版", "unit": "小数乘法", "knowledge": "小数乘小数", "type": "choice", "difficulty": 1, "stem": "0.25 × 0.4 = ?", "options": ["0.1", "1", "0.01", "0.4"], "answer": "0.1", "explanation": "先算 25×4=100，因数共三位小数，得 0.100，省略末尾0为 0.1。"},
@@ -17,7 +30,6 @@
     {"id": "math_g5_u3_q2", "subject": "数学", "grade": 5, "edition": "人教版", "unit": "简易方程", "knowledge": "方程的解", "type": "choice", "difficulty": 1, "stem": "x = 3 是方程 5x = 15 的解吗？", "options": ["正确", "错误"], "answer": "正确", "explanation": "5 × 3 = 15，等式成立，故 x=3 是其解。"},
     {"id": "math_g5_u4_q1", "subject": "数学", "grade": 5, "edition": "人教版", "unit": "多边形的面积", "knowledge": "平行四边形面积", "type": "choice", "difficulty": 2, "stem": "平行四边形底 5 cm、高 3 cm，面积是？", "options": ["15 平方厘米", "8 平方厘米", "1.5 平方厘米", "30 平方厘米"], "answer": "15 平方厘米", "explanation": "面积 = 底×高 = 5 × 3 = 15（平方厘米）。"},
     {"id": "math_g5_u4_q2", "subject": "数学", "grade": 5, "edition": "人教版", "unit": "多边形的面积", "knowledge": "三角形面积", "type": "choice", "difficulty": 2, "stem": "三角形底 6 cm、高 4 cm，面积是？", "options": ["12 平方厘米", "6 平方厘米", "24 平方厘米", "10 平方厘米"], "answer": "12 平方厘米", "explanation": "面积 = 底×高÷2 = 6 × 4 ÷ 2 = 12（平方厘米）。"},
-
     {"id": "chinese_g5_u1_q1", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "作家作品", "knowledge": "课文作者", "type": "choice", "difficulty": 1, "stem": "《落花生》的作者是？", "options": ["许地山", "老舍", "冰心", "叶圣陶"], "answer": "许地山", "explanation": "《落花生》是现代作家许地山（笔名落华生）的作品。"},
     {"id": "chinese_g5_u1_q2", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "词语理解", "knowledge": "近义词", "type": "choice", "difficulty": 1, "stem": "“悠然”的近义词是？", "options": ["悠闲", "紧张", "匆忙", "焦虑"], "answer": "悠闲", "explanation": "“悠然”指悠闲自在，近义词为“悠闲”。"},
     {"id": "chinese_g5_u1_q3", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "作家作品", "knowledge": "课文作者", "type": "choice", "difficulty": 1, "stem": "《少年中国说（节选）》的作者是？", "options": ["梁启超", "康有为", "谭嗣同", "胡适"], "answer": "梁启超", "explanation": "《少年中国说》是梁启超发表于1900年的散文。"},
@@ -25,7 +37,6 @@
     {"id": "chinese_g5_u2_q2", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "古诗积累", "knowledge": "诗句默写", "type": "choice", "difficulty": 2, "stem": "《题临安邸》中“暖风熏得游人醉”的下一句是？", "options": ["直把杭州作汴州", "西湖歌舞几时休", "不拘一格降人材", "万马齐喑究可哀"], "answer": "直把杭州作汴州", "explanation": "全诗：山外青山楼外楼……暖风熏得游人醉，直把杭州作汴州。"},
     {"id": "chinese_g5_u3_q1", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "成语与典故", "knowledge": "历史人物", "type": "choice", "difficulty": 2, "stem": "成语“负荆请罪”与哪两位历史人物有关？", "options": ["廉颇、蔺相如", "刘备、诸葛亮", "项羽、刘邦", "苏武、李陵"], "answer": "廉颇、蔺相如", "explanation": "出自《将相和》，廉颇向蔺相如负荆请罪。"},
     {"id": "chinese_g5_u3_q2", "subject": "语文", "grade": 5, "edition": "人教版", "unit": "课文理解", "knowledge": "人物指代", "type": "choice", "difficulty": 1, "stem": "《将相和》中的“将”指廉颇，“相”指蔺相如，对吗？", "options": ["正确", "错误"], "answer": "正确", "explanation": "“将”为将领廉颇，“相”为丞相蔺相如。"},
-
     {"id": "english_g5_u1_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 1 What's he like?", "knowledge": "特殊疑问句回答", "type": "choice", "difficulty": 1, "stem": "— Who's your English teacher? — ___", "options": ["Mr Li.", "I am ten.", "She is tall.", "It's red."], "answer": "Mr Li.", "explanation": "Who 问人，回答应是具体人物。"},
     {"id": "english_g5_u1_q2", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 1 What's he like?", "knowledge": "一般疑问句回答", "type": "choice", "difficulty": 1, "stem": "— Is she strict? — No, she ___.", "options": ["isn't", "is", "aren't", "not"], "answer": "isn't", "explanation": "Is she...? 否定回答 No, she isn't."},
     {"id": "english_g5_u2_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 2 My week", "knowledge": "星期与课程", "type": "choice", "difficulty": 1, "stem": "— What do you have on Mondays? — ___", "options": ["We have Chinese and math.", "I like Monday.", "It's Monday.", "Yes, we do."], "answer": "We have Chinese and math.", "explanation": "问周一有什么课，回答具体课程。"},
@@ -33,6 +44,22 @@
     {"id": "english_g5_u3_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 3 What would you like?", "knowledge": "点餐表达", "type": "choice", "difficulty": 1, "stem": "— What would you like to eat? — ___", "options": ["I'd like a sandwich.", "I like apples.", "I am hungry.", "A book."], "answer": "I'd like a sandwich.", "explanation": "What would you like to eat? 用 I'd like... 回答。"},
     {"id": "english_g5_u4_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 4 What can you do?", "knowledge": "情态动词 can", "type": "choice", "difficulty": 1, "stem": "— Can you swim? — ___", "options": ["No, I can't.", "No, I don't.", "Yes, I can't.", "I can swim."], "answer": "No, I can't.", "explanation": "Can you...? 否定回答 No, I can't."},
     {"id": "english_g5_u5_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 5 There is a big bed", "knowledge": "there be 句型", "type": "choice", "difficulty": 1, "stem": "“There is a book on the desk.” 表示“桌子上有一本书”。", "options": ["正确", "错误"], "answer": "正确", "explanation": "There is + 单数名词，表示某处有某物。"},
-    {"id": "english_g5_u6_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 6 In a nature park", "knowledge": "there be 疑问", "type": "choice", "difficulty": 1, "stem": "— Is there a river in the park? — ___", "options": ["Yes, there is.", "Yes, it is.", "No, there aren't.", "Yes, there are."], "answer": "Yes, there is.", "explanation": "Is there...? 肯定回答 Yes, there is."}
+    {"id": "english_g5_u6_q1", "subject": "英语", "grade": 5, "edition": "人教版PEP", "unit": "Unit 6 In a nature park", "knowledge": "there be 疑问", "type": "choice", "difficulty": 1, "stem": "— Is there a river in the park? — ___", "options": ["Yes, there is.", "Yes, it is.", "No, there aren't.", "Yes, there are."], "answer": "Yes, there is.", "explanation": "Is there...? 肯定回答 Yes, there is."},
+    {"id": "dutch_g5_ww1", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "tegenwoordige tijd (hij + t)", "type": "choice", "difficulty": 1, "stem": "Hij ___ elke dag naar school.", "options": ["fietst", "fietsd", "fiets", "fietsdt"], "answer": "fietst", "explanation": "hij/zij/het + 词干 + t：fiets + t = fietst。"},
+    {"id": "dutch_g5_ww2", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "tegenwoordige tijd (hij + t)", "type": "choice", "difficulty": 1, "stem": "Mijn zus ___ morgen tien jaar.", "options": ["wordt", "word", "wort", "worden"], "answer": "wordt", "explanation": "zus = zij（单数第三人称），词干 word + t = wordt。"},
+    {"id": "dutch_g5_ww3", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "inversie (jij zonder t)", "type": "choice", "difficulty": 1, "stem": "___ jij ook mee naar het park?", "options": ["Ga", "Gaat", "Gat", "Gaan"], "answer": "Ga", "explanation": "jij 放在动词后面（倒装）时，动词不加 t：Ga jij…?"},
+    {"id": "dutch_g5_ww4", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "verleden tijd ('t kofschip)", "type": "choice", "difficulty": 2, "stem": "Vorige week ___ ik een taart.", "options": ["bakte", "bakde", "bakten", "bakd"], "answer": "bakte", "explanation": "词干 bak 以 k 结尾，k 在 ’t kofschip 里，过去式加 -te：bakte。"},
+    {"id": "dutch_g5_ww5", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "verleden tijd ('t kofschip)", "type": "choice", "difficulty": 2, "stem": "Gisteren ___ wij voetbal op het plein.", "options": ["speelden", "speelten", "speelde", "speeldet"], "answer": "speelden", "explanation": "词干 speel 以 l 结尾，不在 ’t kofschip 里，加 -de；wij 是复数，所以是 -den：speelden。"},
+    {"id": "dutch_g5_ww6", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Werkwoordspelling", "knowledge": "voltooid deelwoord", "type": "choice", "difficulty": 2, "stem": "Ik heb mijn huiswerk al ___.", "options": ["gemaakt", "gemaakd", "gemaak", "maakt"], "answer": "gemaakt", "explanation": "maken 的词干 maak 以 k 结尾（’t kofschip），过去分词 ge- + maak + t = gemaakt。"},
+    {"id": "dutch_g5_lw1", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Lidwoorden", "knowledge": "de of het", "type": "choice", "difficulty": 1, "stem": "Welk lidwoord hoort bij 'huis'?", "options": ["het", "de"], "answer": "het", "explanation": "het huis（中性名词）。"},
+    {"id": "dutch_g5_lw2", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Lidwoorden", "knowledge": "de of het", "type": "choice", "difficulty": 1, "stem": "Welk lidwoord hoort bij 'fiets'?", "options": ["de", "het"], "answer": "de", "explanation": "de fiets。"},
+    {"id": "dutch_g5_lw3", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Lidwoorden", "knowledge": "de of het", "type": "choice", "difficulty": 1, "stem": "Welk lidwoord hoort bij 'meisje'?", "options": ["het", "de"], "answer": "het", "explanation": "以 -je 结尾的小称词（verkleinwoord）永远用 het：het meisje。"},
+    {"id": "dutch_g5_mv1", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Meervoud & verkleinwoord", "knowledge": "meervoud", "type": "choice", "difficulty": 1, "stem": "Wat is het meervoud van 'boek'?", "options": ["boeken", "boeks", "boekken", "boeke"], "answer": "boeken", "explanation": "boek 的复数加 -en：boeken。"},
+    {"id": "dutch_g5_mv2", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Meervoud & verkleinwoord", "knowledge": "meervoud", "type": "choice", "difficulty": 2, "stem": "Wat is het meervoud van 'kat'?", "options": ["katten", "katen", "kats", "kaatten"], "answer": "katten", "explanation": "短元音 a 后面只有一个辅音，加 -en 时辅音要双写：katten。"},
+    {"id": "dutch_g5_mv3", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Meervoud & verkleinwoord", "knowledge": "verkleinwoord", "type": "choice", "difficulty": 2, "stem": "Wat is het verkleinwoord van 'boom'?", "options": ["boompje", "boomje", "boomtje", "boomkje"], "answer": "boompje", "explanation": "以 -m 结尾的词小称加 -pje：boompje。"},
+    {"id": "dutch_g5_wo1", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Woordenschat", "knowledge": "tegenstellingen", "type": "choice", "difficulty": 1, "stem": "Wat is het tegenovergestelde van 'snel'?", "options": ["langzaam", "vlug", "hard", "groot"], "answer": "langzaam", "explanation": "snel（快）的反义词是 langzaam（慢）。vlug 是近义词。"},
+    {"id": "dutch_g5_wo2", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Woordenschat", "knowledge": "synoniemen", "type": "choice", "difficulty": 1, "stem": "Welk woord betekent ongeveer hetzelfde als 'blij'?", "options": ["vrolijk", "boos", "moe", "bang"], "answer": "vrolijk", "explanation": "blij 和 vrolijk 都是“高兴”的意思。"},
+    {"id": "dutch_g5_wo3", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Woordenschat", "knowledge": "spelling", "type": "choice", "difficulty": 1, "stem": "Welk woord is goed gespeld?", "options": ["vliegtuig", "vliechtuig", "fliegtuig", "vliegtuich"], "answer": "vliegtuig", "explanation": "vliegtuig（飞机）= vliegen（飞）+ tuig，用 v 和 g。"},
+    {"id": "dutch_g5_zo1", "subject": "荷兰语", "grade": 5, "edition": "荷兰小学（groep 7）", "unit": "Zinsontleding", "knowledge": "persoonsvorm", "type": "choice", "difficulty": 1, "stem": "Wat is de persoonsvorm in: 'Mijn broer speelt buiten.'?", "options": ["speelt", "broer", "buiten", "Mijn"], "answer": "speelt", "explanation": "persoonsvorm（限定动词）是句子里随人称和时态变化的动词：speelt。"}
   ]
 }
