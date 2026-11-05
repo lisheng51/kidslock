@@ -126,15 +126,37 @@ public class LockScreenActivity extends AppCompatActivity {
     // ==================== 出题 ====================
 
     private void loadRound() {
+        // 题库 JSON 链接：下载整个题库，本机选题；失败用上次缓存，再失败用内置题库
+        if (pref.isOnline() && QuestionBank.isJsonBankUrl(pref.getServerUrl())) {
+            final String url = pref.getServerUrl();
+            final int grade = pref.getGrade();
+            final String mastery = pref.getMasteryJson();
+            showLoading();
+            new Thread(() -> {
+                QuestionBank remote = QuestionBank.fetchJsonBank(getApplicationContext(), url);
+                if (remote == null) remote = QuestionBank.loadCachedJsonBank(getApplicationContext(), url);
+                final List<QuestionBank.Question> picked = remote == null ? null
+                        : remote.getRound(grade, null, requiredCount, mastery);
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (picked != null && !picked.isEmpty()) {
+                        round = picked;
+                        roundIndex = 0;
+                        loadCurrent();
+                    } else {
+                        loadLocalRound(); // 链接不可用 / 该年级没有题 → 内置题库
+                    }
+                });
+            }).start();
+            return;
+        }
         // 在线模式：后台线程拉题（Android 6+ 禁止主线程网络）；失败自动回退内置题库
         if (pref.isOnline() && !pref.getServerUrl().isEmpty() && !pref.getChildId().isEmpty()) {
             final String serverUrl = pref.getServerUrl();
             final String childId = pref.getChildId();
             final String edition = pref.getEdition();
             final int grade = pref.getGrade();
-            tvStem.setText("正在加载题目…");
-            tvProgress.setText("");
-            for (Button b : optionButtons) b.setVisibility(View.GONE);
+            showLoading();
             new Thread(() -> {
                 final List<QuestionBank.Question> remote =
                         QuestionBank.fetchRoundFromServer(serverUrl, childId, grade, edition, requiredCount);
@@ -152,6 +174,12 @@ public class LockScreenActivity extends AppCompatActivity {
         } else {
             loadLocalRound();
         }
+    }
+
+    private void showLoading() {
+        tvStem.setText("正在加载题目…");
+        tvProgress.setText("");
+        for (Button b : optionButtons) b.setVisibility(View.GONE);
     }
 
     /** 内置题库（离线）出题。 */
@@ -173,7 +201,8 @@ public class LockScreenActivity extends AppCompatActivity {
     private void loadCurrent() {
         current = round.get(roundIndex);
         currentOptions = current.options;
-        tvSubject.setText(current.subject + " · " + current.unit);
+        boolean hasUnit = current.unit != null && !current.unit.isEmpty();
+        tvSubject.setText(hasUnit ? current.subject + " · " + current.unit : current.subject);
         tvStem.setText(current.stem);
         // 题干较长（如英语）时缩小字号，避免溢出
         tvStem.setTextSize(current.stem.length() > 16 ? 28 : 40);
@@ -183,6 +212,10 @@ public class LockScreenActivity extends AppCompatActivity {
             optionButtons[i].setText(currentOptions.get(i));
             optionButtons[i].setBackgroundResource(R.drawable.btn_option_bg);
             optionButtons[i].setEnabled(true);
+        }
+        // 少于 4 个选项时隐藏多余按钮，避免残留上一题的选项
+        for (int i = currentOptions.size(); i < optionButtons.length; i++) {
+            optionButtons[i].setVisibility(View.GONE);
         }
         updateProgress();
         tvFeedback.setVisibility(View.GONE);
@@ -263,6 +296,7 @@ public class LockScreenActivity extends AppCompatActivity {
     /** 在线模式：把本轮答题结果回传后台更新掌握度（后台线程，静默失败）。 */
     private void submitIfOnline() {
         if (!pref.isOnline() || pref.getServerUrl().isEmpty() || pref.getChildId().isEmpty()) return;
+        if (QuestionBank.isJsonBankUrl(pref.getServerUrl())) return; // 题库文件没有回传接口，掌握度只记在本机
         if (resultsJson.length() == 0) return;
         final String serverUrl = pref.getServerUrl();
         final String childId = pref.getChildId();

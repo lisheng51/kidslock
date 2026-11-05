@@ -23,7 +23,9 @@ import java.util.Random;
 /**
  * 通用题库：
  *  - 离线：从 assets/questions.json 加载内置题库；
- *  - 在线：从 NAS 后台 /api/next 拉题（后台已完成弱项优先选题），/api/submit 回传进度。
+ *  - 在线（后台）：从 NAS 后台 /api/next 拉题（后台已完成弱项优先选题），/api/submit 回传进度；
+ *  - 在线（题库链接）：地址以 .json 结尾时直接下载整个题库文件，在本机按年级 + 弱项优先选题，
+ *    并缓存最近一次成功下载的版本，断网时先用缓存。
  *
  * 在线任何失败（超时/404/JSON 异常）均返回 null / 静默失败，由调用方回退内置题库，
  * 保证断网时仍可用。所有网络方法均在后台线程执行（Android 6.0+ 禁止主线程网络）。
@@ -101,6 +103,99 @@ public class QuestionBank {
         return q;
     }
 
+    // ==================== 在线：题库 JSON 链接 ====================
+
+    private static final String CACHE_FILE = "remote_bank.json";
+    private static final String CACHE_URL_FILE = "remote_bank.url";
+    private static final int JSON_READ_TIMEOUT_MS = 10000;
+
+    /** 地址是否为题库 JSON 文件链接（路径以 .json 结尾），而不是后台服务器地址。 */
+    public static boolean isJsonBankUrl(String url) {
+        if (url == null) return false;
+        String path = url.trim();
+        int cut = path.indexOf('?');
+        if (cut >= 0) path = path.substring(0, cut);
+        cut = path.indexOf('#');
+        if (cut >= 0) path = path.substring(0, cut);
+        return path.toLowerCase().endsWith(".json");
+    }
+
+    /** GitHub 网页链接（/blob/）转成原始文件链接，避免拿到 HTML。 */
+    static String toRawUrl(String url) {
+        String u = url.trim();
+        if (!u.startsWith("http://") && !u.startsWith("https://")) u = "https://" + u;
+        if (u.matches("^https?://github\\.com/[^/]+/[^/]+/blob/.+")) {
+            u = u.replaceFirst("^https?://github\\.com/", "https://raw.githubusercontent.com/")
+                    .replaceFirst("/blob/", "/");
+        }
+        return u;
+    }
+
+    /**
+     * 下载题库 JSON（格式同 assets/questions.json），成功后缓存到本地，返回题库；失败返回 null。
+     * 必须在后台线程调用。
+     */
+    public static QuestionBank fetchJsonBank(Context context, String url) {
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) new URL(toRawUrl(url)).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setInstanceFollowRedirects(true);
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(JSON_READ_TIMEOUT_MS);
+            int code = conn.getResponseCode();
+            if (code != 200) {
+                Log.w(TAG, "fetchJsonBank HTTP " + code);
+                return null;
+            }
+            String body = readAll(conn.getInputStream());
+            QuestionBank bank = new QuestionBank();
+            bank.parse(body);
+            if (bank.validCount() == 0) {
+                Log.w(TAG, "fetchJsonBank: no valid questions");
+                return null;
+            }
+            writeFile(context, CACHE_FILE, body);
+            writeFile(context, CACHE_URL_FILE, url.trim());
+            return bank;
+        } catch (Exception e) {
+            Log.w(TAG, "fetchJsonBank failed: " + e.getMessage());
+            return null;
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+    }
+
+    /** 读取上次成功下载的题库缓存（仅当链接未变），没有则返回 null。 */
+    public static QuestionBank loadCachedJsonBank(Context context, String url) {
+        try {
+            String cachedUrl = readFile(context, CACHE_URL_FILE);
+            if (cachedUrl == null || !cachedUrl.equals(url.trim())) return null;
+            String body = readFile(context, CACHE_FILE);
+            if (body == null) return null;
+            QuestionBank bank = new QuestionBank();
+            bank.parse(body);
+            return bank.validCount() > 0 ? bank : null;
+        } catch (Exception e) {
+            Log.w(TAG, "loadCachedJsonBank failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static void writeFile(Context context, String name, String content) throws Exception {
+        try (OutputStream os = context.openFileOutput(name, Context.MODE_PRIVATE)) {
+            os.write(content.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private static String readFile(Context context, String name) {
+        try (InputStream is = context.openFileInput(name)) {
+            return readAll(is);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // ==================== 在线：NAS 后台 ====================
 
     /**
@@ -126,7 +221,10 @@ public class QuestionBank {
             JSONObject root = new JSONObject(body);
             JSONArray arr = root.getJSONArray("questions");
             List<Question> out = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) out.add(parseQuestion(arr.getJSONObject(i)));
+            for (int i = 0; i < arr.length(); i++) {
+                Question q = parseQuestion(arr.getJSONObject(i));
+                if (isValid(q)) out.add(q); // 格式不对的题跳过，避免孩子被无解的题卡住
+            }
             return out;
         } catch (Exception e) {
             Log.w(TAG, "fetchRoundFromServer failed: " + e.getMessage());
@@ -199,9 +297,28 @@ public class QuestionBank {
         for (Question q : all) {
             if (q.grade != grade) continue;
             if (subjects != null && !subjects.contains(q.subject)) continue;
+            if (!isValid(q)) continue;
             out.add(q);
         }
         return out;
+    }
+
+    /** 能在锁屏上正常作答：有题干，2~4 个选项，且答案就是其中一个选项。 */
+    private static boolean isValid(Question q) {
+        return q.stem != null && !q.stem.isEmpty()
+                && q.options.size() >= 2 && q.options.size() <= 4
+                && q.answer != null && q.options.contains(q.answer);
+    }
+
+    private int validCount() {
+        int n = 0;
+        for (Question q : all) if (isValid(q)) n++;
+        return n;
+    }
+
+    /** 某年级可用（格式有效）的题目数，用于设置页测试连接时提示。 */
+    public int countForGrade(int grade) {
+        return filter(grade, null).size();
     }
 
     /**

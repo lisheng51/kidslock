@@ -142,8 +142,9 @@ public class MainActivity extends AppCompatActivity {
                 pref.setOnline(false);
                 toast("已关闭联网拉题，改用内置题库");
             } else {
-                if (pref.getServerUrl().isEmpty() || pref.getChildId().isEmpty()) {
-                    toast("请先配置服务器地址与孩子ID");
+                String u = pref.getServerUrl();
+                if (u.isEmpty() || (!QuestionBank.isJsonBankUrl(u) && pref.getChildId().isEmpty())) {
+                    toast("请先配置题库地址（后台地址还需填孩子ID）");
                     showServerDialog();
                     return;
                 }
@@ -271,12 +272,12 @@ public class MainActivity extends AppCompatActivity {
         box.setPadding(dp(24), dp(8), dp(24), 0);
 
         final EditText etUrl = new EditText(this);
-        etUrl.setHint("服务器地址，如 http://192.168.1.10:8000");
+        etUrl.setHint("后台地址 http://192.168.1.10:8000 或题库链接 https://…/questions.json");
         etUrl.setText(pref.getServerUrl());
         etUrl.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
 
         final EditText etChild = new EditText(this);
-        etChild.setHint("孩子ID（自定义，如 ming）");
+        etChild.setHint("孩子ID（如 ming；用题库链接时可不填）");
         etChild.setText(pref.getChildId());
         etChild.setInputType(InputType.TYPE_CLASS_TEXT);
 
@@ -284,13 +285,17 @@ public class MainActivity extends AppCompatActivity {
         box.addView(etChild);
 
         new AlertDialog.Builder(this)
-                .setTitle("配置在线题库（NAS 后台）")
+                .setTitle("配置在线题库（后台地址或 JSON 链接）")
                 .setView(box)
                 .setPositiveButton("保存并测试", (d, w) -> {
                     String url = etUrl.getText().toString().trim();
                     String child = etChild.getText().toString().trim();
-                    if (url.isEmpty() || child.isEmpty()) {
-                        toast("地址与孩子ID都不能为空");
+                    if (url.isEmpty()) {
+                        toast("地址不能为空");
+                        return;
+                    }
+                    if (!QuestionBank.isJsonBankUrl(url) && child.isEmpty()) {
+                        toast("使用后台地址时必须填写孩子ID");
                         return;
                     }
                     pref.setServerUrl(url);
@@ -307,6 +312,21 @@ public class MainActivity extends AppCompatActivity {
         final int grade = pref.getGrade();
         final String edition = pref.getEdition();
         toast("测试连接中…");
+        if (QuestionBank.isJsonBankUrl(url)) {
+            new Thread(() -> {
+                QuestionBank b = QuestionBank.fetchJsonBank(getApplicationContext(), url);
+                runOnUiThread(() -> {
+                    if (b == null) {
+                        toast("下载题库失败：请检查链接是否为原始 JSON 文件、格式是否正确");
+                    } else {
+                        int n = b.countForGrade(grade);
+                        toast("题库下载成功，共 " + b.size() + " 题，" + gradeLabel(grade) + "可用 " + n + " 题"
+                                + (n == 0 ? "（本年级没有题，将使用内置题库）" : ""));
+                    }
+                });
+            }).start();
+            return;
+        }
         new Thread(() -> {
             List<QuestionBank.Question> r = QuestionBank.fetchRoundFromServer(url, child, grade, edition, 1);
             runOnUiThread(() -> toast(r != null && !r.isEmpty() ? "连接成功，已能拉取题目" : "连接失败，请检查地址/后台是否启动"));
@@ -377,8 +397,10 @@ public class MainActivity extends AppCompatActivity {
 
         // 在线题库状态
         if (tvOnline != null) {
-            if (pref.isOnline() && !pref.getServerUrl().isEmpty()) {
-                tvOnline.setText("在线题库：开启 · " + pref.getServerUrl() + " · 孩子ID=" + pref.getChildId());
+            if (pref.isOnline() && QuestionBank.isJsonBankUrl(pref.getServerUrl())) {
+                tvOnline.setText("在线题库：开启 · 题库链接 " + pref.getServerUrl());
+            } else if (pref.isOnline() && !pref.getServerUrl().isEmpty()) {
+                tvOnline.setText("在线题库：开启 · 后台 " + pref.getServerUrl() + " · 孩子ID=" + pref.getChildId());
             } else {
                 tvOnline.setText("在线题库：关闭（使用内置题库）");
             }
