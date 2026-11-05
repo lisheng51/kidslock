@@ -3,10 +3,12 @@ package com.kidslock.app;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.InputType;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private TextView tvStatus, tvRemaining, tvMode, tvGrade, tvSubjects, tvInterval, tvUnlockCount;
-    private TextView tvOnline;
+    private TextView tvOnline, tvGuardStatus;
     private Button btnModeToggle, btnGradeDown, btnGradeUp;
     private Button btnEnableChild, btnEnableParent;
     private Button btnConfigOnline, btnToggleOnline;
@@ -90,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         btnEnableChild = findViewById(R.id.btnEnableChild);
         btnEnableParent = findViewById(R.id.btnEnableParent);
         tvOnline = findViewById(R.id.tvOnline);
+        tvGuardStatus = findViewById(R.id.tvGuardStatus);
         btnConfigOnline = findViewById(R.id.btnConfigOnline);
         btnToggleOnline = findViewById(R.id.btnToggleOnline);
     }
@@ -153,16 +156,22 @@ public class MainActivity extends AppCompatActivity {
         // PIN
         findViewById(R.id.btnSetPin).setOnClickListener(v -> showPinDialog());
 
+        // 防绕过权限
+        findViewById(R.id.btnOpenA11y).setOnClickListener(v -> openAccessibilitySettings());
+        findViewById(R.id.btnOpenOverlay).setOnClickListener(v -> openOverlaySettings());
+
         // 开启孩子模式（立即锁屏）
         btnEnableChild.setOnClickListener(v -> {
-            pref.setMode(PrefManager.MODE_CHILD);
-            pref.setLocked(true);
-            pref.setHomeAliasEnabled(this, true);
-            pref.stopTimer();
-            startLockService();
-            Intent lockIntent = new Intent(this, LockScreenActivity.class);
-            lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(lockIntent);
+            if (!GuardAccessibilityService.isEnabled(this)) {
+                new AlertDialog.Builder(this)
+                        .setTitle("锁屏守护未开启")
+                        .setMessage("未开启时，在 Google TV 上孩子按 HOME 键即可离开答题界面。\n\n建议先开启「锁屏守护」再进入孩子模式。")
+                        .setPositiveButton("去开启", (d, w) -> openAccessibilitySettings())
+                        .setNegativeButton("仍然锁屏", (d, w) -> enterChildLock())
+                        .show();
+                return;
+            }
+            enterChildLock();
         });
 
         // 切换到家长模式（解锁）
@@ -175,6 +184,62 @@ public class MainActivity extends AppCompatActivity {
             toast("已切换到家长模式，不再弹题");
             updateStatus();
         });
+    }
+
+    private void enterChildLock() {
+        pref.setMode(PrefManager.MODE_CHILD);
+        pref.setLocked(true);
+        pref.setHomeAliasEnabled(this, true);
+        pref.stopTimer();
+        startLockService();
+        Intent lockIntent = new Intent(this, LockScreenActivity.class);
+        lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(lockIntent);
+    }
+
+    // ==================== 防绕过权限引导 ====================
+
+    private boolean canDrawOverlays() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
+    }
+
+    /** 打开系统无障碍设置；Google TV 找不到入口时给出 adb 命令。 */
+    private void openAccessibilitySettings() {
+        if (tryStart(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))) {
+            toast("请在列表中找到「" + getString(R.string.guard_a11y_label) + "」并开启");
+            return;
+        }
+        showAdbHelp("开启锁屏守护", GuardAccessibilityService.adbEnableCommand(this));
+    }
+
+    /** 打开悬浮窗授权页；Google TV 通常没有这个页面，回退到 adb 命令。 */
+    private void openOverlaySettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            if (tryStart(i)) return;
+        }
+        showAdbHelp("开启悬浮窗权限",
+                "adb shell appops set " + getPackageName() + " SYSTEM_ALERT_WINDOW allow");
+    }
+
+    private boolean tryStart(Intent intent) {
+        try {
+            if (intent.resolveActivity(getPackageManager()) == null) return false;
+            startActivity(intent);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void showAdbHelp(String title, String cmd) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage("这台电视的设置里没有对应入口，请在电脑上用 adb 执行：\n\n"
+                        + "adb connect <电视IP>:5555\n" + cmd)
+                .setPositiveButton("知道了", null)
+                .show();
     }
 
     private void showPinDialog() {
@@ -298,6 +363,16 @@ public class MainActivity extends AppCompatActivity {
             tvStatus.setText("当前状态：待命");
             tvStatus.setTextColor(getResources().getColor(R.color.text_secondary));
             tvRemaining.setText("");
+        }
+
+        // 防绕过权限状态
+        if (tvGuardStatus != null) {
+            boolean a11y = GuardAccessibilityService.isEnabled(this);
+            boolean overlay = canDrawOverlays();
+            tvGuardStatus.setText("锁屏守护（拦截 HOME 键）：" + (a11y ? "已开启 ✓" : "未开启 ✗")
+                    + "\n悬浮窗权限：" + (overlay ? "已开启 ✓" : "未开启（可选）"));
+            tvGuardStatus.setTextColor(getResources().getColor(
+                    a11y ? R.color.correct_green : R.color.wrong_red));
         }
 
         // 在线题库状态

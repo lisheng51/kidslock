@@ -31,6 +31,27 @@ adb install app-universal-debug.apk
 ### 方法三：U盘安装
 将 `app-universal-debug.apk` 拷贝到 U 盘，电视「文件管理」中找到并安装（需先开启「允许安装未知来源应用」）。
 
+## Google TV / 原生 Android TV
+
+Google TV 没有"选择默认桌面"的入口，HOME 键会直接回到 Google TV 主屏，因此需要开启**锁屏守护（无障碍服务）**：
+
+- 锁屏期间拦截 HOME、最近任务、设置、语音助手、应用快捷键等，只放行方向键 / 确认 / 返回 / 数字 / 音量 / 电源；
+- 锁屏期间若有其他应用切到前台，立即拉回答题界面；
+- 开机时系统自动绑定该服务，处于锁屏状态会立即弹题；
+- 未锁屏（家长模式 / 自由观看）时完全不拦截。
+
+**开启方法**：设置页「防绕过权限」→「开启锁屏守护」，在系统无障碍列表里打开「儿童锁屏 · 锁屏守护」。设置里找不到入口时用 adb：
+
+```bash
+adb connect <电视IP>:5555
+adb shell settings put secure enabled_accessibility_services com.kidslock.app/.GuardAccessibilityService
+adb shell settings put secure accessibility_enabled 1
+# 可选：悬浮窗权限（Google TV 设置里通常没有此开关）
+adb shell appops set com.kidslock.app SYSTEM_ALERT_WINDOW allow
+```
+
+> 注意：自由观看期间孩子仍可进入系统设置关闭无障碍服务。建议在 Google TV 设置中为「设置」等入口加家长控制，或定期检查设置页的守护状态。
+
 ## 使用流程
 
 1. **首次打开**：电视桌面「全部应用」找到「儿童锁屏」图标打开。
